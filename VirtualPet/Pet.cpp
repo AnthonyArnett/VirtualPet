@@ -1,6 +1,7 @@
 #include "Pet.h"
 #include <iostream>
 #include <algorithm>
+#include <fstream>
 
 Pet::Pet(const std::string& name)
 	: name(name), hunger(50), happiness(50), cleanliness(50), energy(50), health(100) {}
@@ -62,4 +63,37 @@ void Pet::ClampStats() {
 	cleanliness = std::clamp(cleanliness, 0, 100);
 	energy = std::clamp(energy, 0, 100);
 	health = std::clamp(health, 0, 100);
+}
+
+void Pet::SaveToFile(const std::string& filename) const {
+	std::ofstream out(filename);
+	if (out) {
+		out << name << "\n"
+			<< hunger << "\n"
+			<< happiness << "\n"
+			<< cleanliness << "\n"
+			<< energy << "\n"
+			<< health << "\n";
+		out.close();
+		std::cout << "Game saved successfully.\n";
+	}
+	else {
+		std::cerr << "Failed to save game.\n";
+	}
+}
+
+bool Pet::LoadFromFile(const std::string& filename) {
+	std::ifstream in(filename);
+	if (in) {
+		std::getline(in, name);
+		in >> hunger >> happiness >> cleanliness >> energy >> health;
+		in.close();
+		std::cout << "Game loaded successfully.\n";
+		ClampStats();
+		return true;
+	}
+	else {
+		std::cerr << "No saved game found.\n";
+		return false;
+	}
 }

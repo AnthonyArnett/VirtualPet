@@ -14,6 +14,11 @@ public:
 	void ShowStats() const;
 	bool IsAlive() const;
 
+	void SaveToFile(const std::string& filename) const;
+	bool LoadFromFile(const std::string& filename);
+
+	std::string GetName() const { return name; }
+
 private:
 	std::string name;
 	int hunger;

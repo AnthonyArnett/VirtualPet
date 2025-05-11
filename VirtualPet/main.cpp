@@ -16,11 +16,18 @@ void ShowMenu() {
 
 int main() {
     std::string name;
-    std::cout << "Welcome to Virtual Pet Simulator!\n";
-    std::cout << "Enter your pet's name: ";
-    std::getline(std::cin, name);
+    Pet myPet("Unnamed");
 
-    Pet myPet(name);
+    // Try to load saved pet
+    bool hasSave = myPet.LoadFromFile("save.dat");
+
+    if (!hasSave) {
+        std::cout << "Welcome to Virtual Pet Simulator!\n";
+        std::cout << "Enter your pet's name: ";
+        std::getline(std::cin, name);
+        myPet = Pet(name);
+    }
+
     bool running = true;
 
     while (running && myPet.IsAlive()) {
@@ -29,24 +36,27 @@ int main() {
 
         int choice;
         std::cin >> choice;
-        std::cin.ignore(); // clear newline from input buffer
+        std::cin.ignore();
 
         switch (choice) {
         case 1: myPet.Feed(); break;
         case 2: myPet.Play(); break;
         case 3: myPet.Clean(); break;
         case 4: myPet.Sleep(); break;
-        case 5: running = false; break;
+        case 5:
+            running = false;
+            myPet.SaveToFile("save.dat");
+            break;
         default: std::cout << "Invalid choice.\n"; break;
         }
 
-        // Simulate time passing after each action
         myPet.Tick();
-        std::this_thread::sleep_for(std::chrono::milliseconds(500)); // Slow it down a bit
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
 
     if (!myPet.IsAlive()) {
-        std::cout << "\nOh no! " << name << " has passed away...\n";
+        std::cout << "\nOh no! " << myPet.GetName() << " has passed away... \n";
+        std::remove("save.dat"); // Delete save on death
     }
     else {
         std::cout << "\nThanks for playing!\n";
