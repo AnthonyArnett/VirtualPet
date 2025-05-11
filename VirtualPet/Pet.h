@@ -21,6 +21,8 @@ public:
 
 	std::string GetMood() const;
 
+	void TriggerRandomEvent();
+
 private:
 	std::string name;
 	int hunger;
