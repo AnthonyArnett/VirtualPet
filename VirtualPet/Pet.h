@@ -1,0 +1,26 @@
+#pragma once
+#include <string>
+
+class Pet {
+public:
+	Pet(const std::string& name);
+
+	void Feed();
+	void Play();
+	void Clean();
+	void Sleep();
+
+	void Tick(); // Called every turn to simulate time passing
+	void ShowStats() const;
+	bool IsAlive() const;
+
+private:
+	std::string name;
+	int hunger;
+	int happiness;
+	int cleanliness;
+	int energy;
+	int health;
+
+	void ClampStats();
+};
