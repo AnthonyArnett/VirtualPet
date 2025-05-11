@@ -19,6 +19,8 @@ public:
 
 	std::string GetName() const { return name; }
 
+	std::string GetMood() const;
+
 private:
 	std::string name;
 	int hunger;

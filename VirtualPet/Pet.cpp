@@ -1,4 +1,4 @@
-#include "Pet.h"
+﻿#include "Pet.h"
 #include <iostream>
 #include <algorithm>
 #include <fstream>
@@ -46,6 +46,7 @@ void Pet::Tick() {
 
 void Pet::ShowStats() const {
 	std::cout << "\n== " << name << "'s Stats ==\n";
+	std::cout << "Mood:        " << GetMood() << "\n";
 	std::cout << "Hunger:      " << hunger << "\n";
 	std::cout << "Happiness:   " << happiness << "\n";
 	std::cout << "Cleanliness: " << cleanliness << "\n";
@@ -96,4 +97,14 @@ bool Pet::LoadFromFile(const std::string& filename) {
 		std::cerr << "No saved game found.\n";
 		return false;
 	}
+}
+
+std::string Pet::GetMood() const {
+	int avg = (hunger + happiness + cleanliness + energy) / 4;
+
+	if (health <= 20) return "💀 Critical";
+	if (avg >= 75)     return "😀 Happy";
+	if (avg >= 50)     return "😐 Okay";
+	if (avg >= 25)     return "😢 Sad";
+	return "⚠️ Miserable";
 }
