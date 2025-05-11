@@ -1,8 +1,53 @@
+﻿
+
 #include <iostream>
 #include <string>
 #include <thread>
 #include <chrono>
+#include <windows.h>
+#include <vector>
 #include "Pet.h"
+#include "Item.h"
+
+std::vector<Item> GetShopItems() {
+    return {
+        { "Yummy Snack", ItemType::Food, "Reduces hunger by 20.", 20 },
+        { "Rubber Ball", ItemType::Toy, "Boosts happiness by 20.", 20 },
+        { "Health Potion", ItemType::Medicine, "Restores 30 health.", 30 }
+    };
+}
+
+void OpenShop(Pet& pet) {
+    std::vector<Item> shopItems = GetShopItems();
+    std::cout << "\n-- 🛒 Pet Shop --\n";
+    for (size_t i = 0; i < shopItems.size(); ++i) {
+        int price = shopItems[i].power * 2; // Example price formula
+        std::cout << i + 1 << ". " << shopItems[i].name
+            << " (" << price << " coins) - " << shopItems[i].description << "\n";
+    }
+    std::cout << "0. Leave Shop\n";
+    std::cout << "Choose an item to buy: ";
+
+    int choice;
+    std::cin >> choice;
+    std::cin.ignore();
+
+    if (choice > 0 && choice <= static_cast<int>(shopItems.size())) {
+        Item item = shopItems[choice - 1];
+        int price = item.power * 2;
+
+        if (pet.SpendCoins(price)) {
+            pet.AddItem(item);
+            std::cout << "You bought " << item.name << "!\n";
+        }
+        else {
+            std::cout << "You can't afford that.\n";
+        }
+    }
+    else if (choice != 0) {
+        std::cout << "Invalid choice.\n";
+    }
+}
 
 void ShowMenu() {
     std::cout << "\nWhat would you like to do?\n";
@@ -10,11 +55,15 @@ void ShowMenu() {
     std::cout << "2. Play\n";
     std::cout << "3. Clean\n";
     std::cout << "4. Sleep\n";
-    std::cout << "5. Quit\n";
+    std::cout << "5. Use Item\n";
+    std::cout << "6. Open Shop\n";
+	std::cout << "7. Quit\n";
     std::cout << "Choose an option: ";
 }
 
+
 int main() {
+    SetConsoleOutputCP(CP_UTF8);
     std::string name;
     Pet myPet("Unnamed");
 
@@ -44,6 +93,18 @@ int main() {
         case 3: myPet.Clean(); break;
         case 4: myPet.Sleep(); break;
         case 5:
+            myPet.ShowInventory();
+            std::cout << "Choose item to use (or 0 to cancel): ";
+            int itemChoice;
+            std::cin >> itemChoice;
+            std::cin.ignore();
+            if (itemChoice > 0)
+                myPet.UseItem(itemChoice - 1);
+            break;
+        case 6:
+            OpenShop(myPet);
+            break;
+        case 7:
             running = false;
             myPet.SaveToFile("save.dat");
             break;

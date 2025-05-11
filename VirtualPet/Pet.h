@@ -1,5 +1,15 @@
 #pragma once
 #include <string>
+#include <vector>
+#include "Item.h"
+
+enum class Personality {
+	Lazy,
+	Hyper,
+	Neat,
+	Picky,
+	Resilient
+};
 
 class Pet {
 public:
@@ -23,6 +33,16 @@ public:
 
 	void TriggerRandomEvent();
 
+	std::string GetPersonalityName() const;
+
+	void AddItem(const Item& item);
+	void ShowInventory() const;
+	void UseItem(int index);
+
+	int GetCoins() const;
+	void AddCoins(int amount);
+	bool SpendCoins(int amount);
+
 private:
 	std::string name;
 	int hunger;
@@ -31,5 +51,11 @@ private:
 	int energy;
 	int health;
 
+	Personality personality;
+
 	void ClampStats();
+
+	std::vector<Item> inventory;
+
+	int coins = 0;
 };

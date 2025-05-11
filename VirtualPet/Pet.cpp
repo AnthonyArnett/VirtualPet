@@ -1,4 +1,4 @@
-﻿#include "Pet.h"
+#include "Pet.h"
 #include <iostream>
 #include <algorithm>
 #include <fstream>
@@ -8,6 +8,15 @@
 Pet::Pet(const std::string& name)
 	: name(name), hunger(50), happiness(50), cleanliness(50), energy(50), health(100) {
 	std::srand(static_cast<unsigned>(std::time(nullptr))); // Seed RNG once
+
+	int roll = std::rand() % 5;
+	switch (roll) {
+	case 0: personality = Personality::Lazy; break;
+	case 1: personality = Personality::Hyper; break;
+	case 2: personality = Personality::Neat; break;
+	case 3: personality = Personality::Picky; break;
+	case 4: personality = Personality::Resilient; break;
+	}
 }
 
 void Pet::Feed() {
@@ -40,6 +49,17 @@ void Pet::Tick() {
 	happiness = std::max(0, happiness - 1);
 	energy = std::max(0, energy - 1);
 
+	// Trait Effects
+	if (personality == Personality::Lazy) {
+		energy = std::max(0, energy - 1); // Gets tired faster
+	}
+	if (personality == Personality::Hyper) {
+		hunger = std::min(100, hunger + 1); // More hunger
+	}
+	if (personality == Personality::Neat && cleanliness < 30) {
+		happiness = std::max(0, happiness - 2); // Gets upset when dirty
+	}
+
 	// Health drops if any stat is too low
 	if (hunger >= 90 || cleanliness <= 10 || energy <= 10 || happiness <= 10) {
 		health -= 5;
@@ -51,6 +71,8 @@ void Pet::Tick() {
 void Pet::ShowStats() const {
 	std::cout << "\n== " << name << "'s Stats ==\n";
 	std::cout << "Mood:        " << GetMood() << "\n";
+	std::cout << "Personality: " << GetPersonalityName() << "\n";
+	std::cout << "Coins:       " << coins << " 🪙\n";
 	std::cout << "Hunger:      " << hunger << "\n";
 	std::cout << "Happiness:   " << happiness << "\n";
 	std::cout << "Cleanliness: " << cleanliness << "\n";
@@ -78,7 +100,8 @@ void Pet::SaveToFile(const std::string& filename) const {
 			<< happiness << "\n"
 			<< cleanliness << "\n"
 			<< energy << "\n"
-			<< health << "\n";
+			<< health << "\n"
+			<< coins << "\n";
 		out.close();
 		std::cout << "Game saved successfully.\n";
 	}
@@ -91,7 +114,7 @@ bool Pet::LoadFromFile(const std::string& filename) {
 	std::ifstream in(filename);
 	if (in) {
 		std::getline(in, name);
-		in >> hunger >> happiness >> cleanliness >> energy >> health;
+		in >> hunger >> happiness >> cleanliness >> energy >> health >> coins;
 		in.close();
 		std::cout << "Game loaded successfully.\n";
 		ClampStats();
@@ -136,5 +159,95 @@ void Pet::TriggerRandomEvent() {
 		std::cout << "🍪 " << name << " snuck a snack. +5 hunger\n";
 		hunger = std::min(100, hunger + 5);
 	}
+	else if (roll < 35) {
+		Item snack = { "Mystery Snack", ItemType::Food, "A weird but tasty treat. Reduces hunger.", 10 };
+		AddItem(snack);
+	}
+	else if (roll < 38) {
+		Item squeaky = { "Squeaky Toy", ItemType::Toy, "A noisy toy that brings joy.", 15 };
+		AddItem(squeaky);
+	}
+	else if (roll < 40) {
+		Item pill = { "Vitamin Pill", ItemType::Medicine, "Heals a little bit of health.", 20 };
+		AddItem(pill);
+	}
+	else if (roll < 45) {
+		int amount = (std::rand() % 5 + 1) * 10;
+		AddCoins(amount);
+	}
 	// ~70% chance of no event
+}
+
+std::string Pet::GetPersonalityName() const {
+	switch (personality) {
+	case Personality::Lazy: return "Lazy";
+	case Personality::Hyper: return "Hyper";
+	case Personality::Neat: return "Neat";
+	case Personality::Picky: return "Picky";
+	case Personality::Resilient: return "Resilient";
+	default: return "Unknown";
+	}
+}
+
+void Pet::AddItem(const Item& item) {
+	inventory.push_back(item);
+	std::cout << "You received a(n) " << item.name << "!\n";
+}
+
+void Pet::ShowInventory() const {
+	if (inventory.empty()) {
+		std::cout << "Your inventory is empty.\n";
+		return;
+	}
+
+	std::cout << "\n-- Inventory --\n";
+	for (size_t i = 0; i < inventory.size(); ++i) {
+		std::cout << i + 1 << ". " << inventory[i].name << " - " << inventory[i].description << "\n";
+	}
+}
+
+void Pet::UseItem(int index) {
+	if (index < 0 || index >= static_cast<int>(inventory.size())) {
+		std::cout << "Invalid item.\n";
+		return;
+	}
+
+	Item item = inventory[index];
+	switch (item.type) {
+	case ItemType::Food:
+		hunger = std::max(0, hunger - item.power);
+		std::cout << name << " ate the " << item.name << "!\n";
+		break;
+	case ItemType::Toy:
+		happiness = std::min(100, happiness + item.power);
+		std::cout << name << " played with the " << item.name << "!\n";
+		break;
+	case ItemType::Medicine:
+		health = std::min(100, health + item.power);
+		std::cout << name << " took the " << item.name << " and feels better!\n";
+		break;
+	}
+
+	inventory.erase(inventory.begin() + index); // item used up
+	ClampStats();
+}
+
+int Pet::GetCoins() const {
+	return coins;
+}
+
+void Pet::AddCoins(int amount) {
+	coins += amount;
+	std::cout << name << " earned " << amount << " coins! 🪙\n";
+}
+
+bool Pet::SpendCoins(int amount) {
+	if (coins >= amount) {
+		coins -= amount;
+		return true;
+	}
+	else {
+		std::cout << "Not enough coins.\n";
+		return false;
+	}
 }
